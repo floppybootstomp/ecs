@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 
 class Draw
@@ -8,5 +7,5 @@ public:
     ~Draw();
 
     // draws a char to the screen
-    void drawChar(std::string c);
+    void drawString(std::string c);
 };

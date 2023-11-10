@@ -1,6 +1,6 @@
 # Compiler and compiler flags
 CXX = g++
-CXXFLAGS = -g -std=c++11 -Wall -Wextra
+CXXFLAGS = -g -std=c++11 -Wall -Wextra -lncursesw
 SDIR = sources
 ODIR = objects
 SOURCES = $(wildcard $(SDIR)/*.cpp)
@@ -11,10 +11,10 @@ TARGET = geimu.exe
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(CXXFLAGS)
 
 $(ODIR)/%.o: $(SDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 clean:
 	rm -rf $(ODIR)/* $(TARGET)

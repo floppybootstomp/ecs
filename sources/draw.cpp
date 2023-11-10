@@ -1,4 +1,5 @@
 #include "../headers/draw.h"
+#include <iostream>
 
 Draw::Draw()
 {
@@ -8,7 +9,7 @@ Draw::~Draw()
 {
 }
 
-void Draw::drawChar(std::string c)
+void Draw::drawString(std::string c)
 {
-    std::cout << c << std::endl;
+    std::cout << c;
 }
