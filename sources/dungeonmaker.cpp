@@ -32,9 +32,9 @@ void DungeonMaker::drawDungeon(Draw* d)
 {
     //node* prev = parent;
     //std::vector<node*> prevNeighbors = prev->neighbors;
-    for(int i = 0; i < sizeX; i ++)
+    for(int i = 0; i < sizeY; i ++)
     {
-        for(int j = 0; j < sizeY; j ++)
+        for(int j = 0; j < sizeX; j ++)
         {
             if(map[i][j] == 1)
             {
@@ -54,7 +54,7 @@ void DungeonMaker::generateDungeon()
 
     parent->x = rand() % sizeX;
     parent->y = rand() % sizeY;
-    map[parent->x][parent->y] = 1;
+    map[parent->y][parent->x] = 1;
 
     node* prev = parent;
     int nodesToMake = numNodes;
@@ -69,12 +69,12 @@ void DungeonMaker::generateDungeon()
 
         for(int j = -1; j <= 1; j ++){
             if(prev->y + j >= 0 && prev->y + j < sizeY){
-                if(map[prev->x][prev->y + j] == 0){
+                if(map[prev->y + j][prev->x] == 0){
                     validY.push_back(prev->y + j);
                 }
             }
             if(prev->x + j >= 0 && prev->x + j < sizeX){
-                if(map[prev->x + j][prev->y] == 0){
+                if(map[prev->y][prev->x + j] == 0){
                     validX.push_back(prev->x + j);
                 }
             }
@@ -100,7 +100,7 @@ void DungeonMaker::generateDungeon()
 
             newNode->neighbors.push_back(prev);
             prev->neighbors.push_back(newNode);
-            map[newNode->x][newNode->y] = 1;
+            map[newNode->y][newNode->x] = 1;
 
             // next iteration...
             nodesToMake --;

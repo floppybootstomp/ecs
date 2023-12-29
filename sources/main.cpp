@@ -16,7 +16,7 @@ int main()
     cbreak();
 
     Draw* d = new Draw();
-    DungeonMaker dungeon(16, 16, (16*16)/4);
+    DungeonMaker dungeon(4, 32, 32);
 
     clear();
 
