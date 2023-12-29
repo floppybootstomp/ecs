@@ -3,6 +3,7 @@
 #include <signal.h>
 #include "../headers/globalVars.h"
 #include "../headers/draw.h"
+#include "../headers/dungeonmaker.h"
 #include <curses.h>
 
 using namespace std;
@@ -14,30 +15,12 @@ int main()
     noecho();
     cbreak();
 
-    int gridsize = 10;
-    int wallsize = 2;
-    Draw d;
+    Draw* d = new Draw();
+    DungeonMaker dungeon(16, 16, (16*16)/4);
 
     clear();
 
-    for(int i = 0; i < gridsize + 2*wallsize; i ++)
-    {
-        for(int j = 0; j < gridsize + 2*wallsize; j ++)
-        {
-            if(i < wallsize || i >= gridsize+wallsize || j < wallsize || j >= gridsize+wallsize)
-            {
-                d.drawString(stdscr, i, j, " ", LIGHT_PALLET);
-            }
-            else if(i == wallsize)
-            {
-                d.drawString(stdscr, i, j, " ", DARK_PALLET);
-            }
-            else
-            {
-                d.drawString(stdscr, i, j, " ", BACKGROUND_PALLET);
-            }
-        }
-    }
+    dungeon.drawDungeon(d);
     move(20, 20);
     refresh();
 
@@ -62,7 +45,7 @@ int main()
                 x ++;
                 break;
         }
-        d.drawString(stdscr, y, x, "@", BACKGROUND_PALLET);
+        d->drawString(stdscr, y, x, "@", BACKGROUND_PALLET);
         refresh();
     }
 
