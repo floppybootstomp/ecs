@@ -17,13 +17,15 @@ class DungeonMaker
 
     node* parent = new node();
 
+    bool calcIsXZero(bool favorX, int factor);
+    bool findValidNeighbors(bool xIsZero, int x, int y, std::vector<int> & validN);
 public:
     DungeonMaker(int sX, int sY, int nNodes);
     ~DungeonMaker();
 
     void drawDungeon(Draw* d);
     
-    void generateDungeon();
+    void generateDungeon(bool favorX, int favorDirMult);
 };
 
 #endif // DUNGEONMAKER_H

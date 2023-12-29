@@ -21,7 +21,7 @@ DungeonMaker::DungeonMaker(int sX, int sY, int nNodes)
         }
     }
 
-    generateDungeon();
+    generateDungeon(true, 6);
 }
 
 DungeonMaker::~DungeonMaker()
@@ -48,7 +48,46 @@ void DungeonMaker::drawDungeon(Draw* d)
     }
 }
 
-void DungeonMaker::generateDungeon()
+// calculates if X is zero and returns whether it is or not
+bool DungeonMaker::calcIsXZero(bool favorX, int factor)
+{
+    int roll = rand() % factor;
+    bool isXZero = !favorX ^ (roll > 0);
+
+    return isXZero;
+}
+
+// sets validN and returns if the validN is for X
+bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, std::vector<int> & validN)
+{
+    // search for valid neighbor among previous node's neighbors
+    std::vector<int> validX;
+    std::vector<int> validY;
+    bool xIsVN;
+
+    for(int j = -1; j <= 1; j ++){
+        if(y + j >= 0 && y + j < sizeY){
+            if(map[y + j][x] == 0){
+                validY.push_back(y + j);
+            }
+        }
+        if(x + j >= 0 && x + j < sizeX){
+            if(map[y][x + j] == 0){
+                validX.push_back(x + j);
+            }
+        }
+    }
+
+    xIsVN = (xIsZero && validY.size() > 0) || validX.size() == 0;
+    if(xIsVN)
+        validN = validY;
+    else
+        validN = validX;
+
+    return xIsVN;
+}
+
+void DungeonMaker::generateDungeon(bool favorX, int favorDirMult)
 {
     srand(time(NULL));
 
@@ -61,29 +100,8 @@ void DungeonMaker::generateDungeon()
     while(nodesToMake > 0)
     {
         std::vector<int> validN;
-
-        // search for valid neighbor among previous node's neighbors
-        bool xIsZero = rand() % 2;
-        std::vector<int> validX;
-        std::vector<int> validY;
-
-        for(int j = -1; j <= 1; j ++){
-            if(prev->y + j >= 0 && prev->y + j < sizeY){
-                if(map[prev->y + j][prev->x] == 0){
-                    validY.push_back(prev->y + j);
-                }
-            }
-            if(prev->x + j >= 0 && prev->x + j < sizeX){
-                if(map[prev->y][prev->x + j] == 0){
-                    validX.push_back(prev->x + j);
-                }
-            }
-        }
-
-        if((xIsZero && validY.size() > 0) || validX.size() == 0)
-            validN = validY;
-        else
-            validN = validX;
+        bool xIsZero = calcIsXZero(!favorX, favorDirMult);
+        bool xIsVN = findValidNeighbors(xIsZero, prev->x, prev->y, validN);
 
         if(validN.size() > 0)
         {
@@ -91,9 +109,8 @@ void DungeonMaker::generateDungeon()
             node* newNode = new node();
             newNode->x = prev->x;
             newNode->y = prev->y;
-            //std::cout << "validn: " << validN.size() << std::endl;
             int newN = validN[rand() % validN.size()];
-            if((xIsZero && validY.size() > 0) || validX.size() == 0)
+            if(xIsVN)
                 newNode->y = newN;
             else
                 newNode->x = newN;
