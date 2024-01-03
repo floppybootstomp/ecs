@@ -5,6 +5,8 @@
 *.swp
 *.geany
 *.txt
+*.dgn
 moc/*
+dungeons/*
 Makefile
 rl

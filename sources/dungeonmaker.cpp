@@ -1,12 +1,14 @@
 #include "../headers/dungeonmaker.h"
 #include "../headers/globalVars.h"
+#include "../headers/fileio.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-DungeonMaker::DungeonMaker(int sX, int sY, int nNodes)
+DungeonMaker::DungeonMaker(int sX, int sY, int nNodes, int nRooms)
 {
+    name = "Dungeon" + std::to_string(rand());
     sizeX = sX;
     sizeY = sY;
     numNodes = nNodes;
@@ -21,7 +23,7 @@ DungeonMaker::DungeonMaker(int sX, int sY, int nNodes)
         }
     }
 
-    generateDungeon(true, 6);
+    generateDungeon(nRooms);
 }
 
 DungeonMaker::~DungeonMaker()
@@ -36,13 +38,19 @@ void DungeonMaker::drawDungeon(Draw* d)
     {
         for(int j = 0; j < sizeX; j ++)
         {
-            if(map[i][j] == 1)
-            {
-                d->drawString(stdscr, i, j, " ", LIGHT_PALLET);
-            }
-            else
-            {
-                d->drawString(stdscr, i, j, " ", BACKGROUND_PALLET);
+            switch(map[i][j]){
+                case 1:
+                    d->drawString(stdscr, i, j, " ", LIGHT_PALLET);
+                    break;
+                case 2:
+                    d->drawString(stdscr, i, j, " ", DARK_PALLET);
+                    break;
+                case 3:
+                    d->drawString(stdscr, i, j, " ", HIGHLIGHT_PALLET);
+                    break;
+                default:
+                    d->drawString(stdscr, i, j, " ", BACKGROUND_PALLET);
+                    break;
             }
         }
     }
@@ -57,8 +65,19 @@ bool DungeonMaker::calcIsXZero(bool favorX, int factor)
     return isXZero;
 }
 
+int DungeonMaker::findNumNeighbors(int x, int y)
+{
+    int count = 0;
+    for(int i = -1; i <= 1; i ++)
+        for(int j = -1; j <= 1; j ++)
+            if(!(y + i < 0 || y + i >= sizeY) && !(x + j < 0 || x + j >= sizeX) && !(i == j) && !(i == -1*j) && (map[y + i][x + j] == 0))
+                count ++;
+
+    return count;
+}
+
 // sets validN and returns if the validN is for X
-bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, std::vector<int> & validN)
+bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, int w, int h, std::vector<int> & validN)
 {
     // search for valid neighbor among previous node's neighbors
     std::vector<int> validX;
@@ -66,12 +85,12 @@ bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, std::vector<in
     bool xIsVN;
 
     for(int j = -1; j <= 1; j ++){
-        if(y + j >= 0 && y + j < sizeY){
+        if(y + j >= 0 && y + j < h && y + j < sizeY){
             if(map[y + j][x] == 0){
                 validY.push_back(y + j);
             }
         }
-        if(x + j >= 0 && x + j < sizeX){
+        if(x + j >= 0 && x + j < w && x + j < sizeX){
             if(map[y][x + j] == 0){
                 validX.push_back(x + j);
             }
@@ -87,21 +106,64 @@ bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, std::vector<in
     return xIsVN;
 }
 
-void DungeonMaker::generateDungeon(bool favorX, int favorDirMult)
+void DungeonMaker::generateDungeon(int numRooms)
 {
+    node tail;
+    bool favorX;
+    int roomWidth, roomHeight, roomX, roomY, hNeighbors, tNeighbors, favorDirMult;
+
     srand(time(NULL));
 
-    parent->x = rand() % sizeX;
-    parent->y = rand() % sizeY;
-    map[parent->y][parent->x] = 1;
+    // initialize values for first room
+    roomWidth = sizeX/numRooms;
+    roomHeight = sizeY/numRooms;
+    roomX = rand() % roomWidth;
+    roomY = rand() % roomHeight;
 
-    node* prev = parent;
-    int nodesToMake = numNodes;
-    while(nodesToMake > 0)
+    for(int i = 0; i < numRooms; i++)
+    {
+        favorX = rand() % 2;
+        favorDirMult = rand() % 10 + 1;
+
+        // add a new room
+        dungeonRooms.push_back(new room(roomWidth, roomHeight));
+
+        // generate a the new room
+        tail = generateRoom(dungeonRooms.back(), roomX, roomY, roomWidth, roomHeight, favorX, favorDirMult);
+
+        // find the number of neighbors and choose the greatest to add the next room
+        hNeighbors = findNumNeighbors(dungeonRooms.back()->parent->x, dungeonRooms.back()->parent->y);
+        tNeighbors = findNumNeighbors(tail.x, tail.y);
+
+        if(hNeighbors > tNeighbors)
+        {
+            roomX = dungeonRooms.back()->parent->x;
+            roomY = dungeonRooms.back()->parent->y;
+        }
+        else
+        {
+            roomX = tail.x;
+            roomY = tail.y;
+        }
+    }
+}
+
+DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int roomWidth, int roomHeight, bool favorX, int favorDirMult)
+{    
+    rm->parent->x = pX;
+    rm->parent->y = pY;
+
+    node* prev = rm->parent;
+    map[prev->y][prev->x] = 2;
+    int nodesToMake = numNodes/5;
+
+    // to terminate the loop if there is a loop in the neighbor map
+    int ttl = nodesToMake * 2;
+    while(nodesToMake > 0 && ttl > 0)
     {
         std::vector<int> validN;
         bool xIsZero = calcIsXZero(!favorX, favorDirMult);
-        bool xIsVN = findValidNeighbors(xIsZero, prev->x, prev->y, validN);
+        bool xIsVN = findValidNeighbors(xIsZero, prev->x, prev->y, prev->x+roomWidth, prev->y+roomHeight, validN);
 
         if(validN.size() > 0)
         {
@@ -117,7 +179,14 @@ void DungeonMaker::generateDungeon(bool favorX, int favorDirMult)
 
             newNode->neighbors.push_back(prev);
             prev->neighbors.push_back(newNode);
-            map[newNode->y][newNode->x] = 1;
+            switch(nodesToMake){
+                case 1:
+                    map[newNode->y][newNode->x] = 3;
+                    break;
+                default:
+                    map[newNode->y][newNode->x] = 1;
+                    break;
+            }
 
             // next iteration...
             nodesToMake --;
@@ -125,8 +194,25 @@ void DungeonMaker::generateDungeon(bool favorX, int favorDirMult)
         }
         else
         {
+            if(prev->neighbors.size() == 0)
+                return *prev;
+
             // if prev has 4 neighbors already, check one of the neighbors
             prev = prev->neighbors[rand() % prev->neighbors.size()];
         }
+
+        ttl --;
     }
+
+    return *prev;
+}
+
+int DungeonMaker::saveDungeon()
+{
+    FileIO* fio = new FileIO();
+    int err = fio->writeMatrix(map, sizeX, sizeY, name + ".dgn");
+    if(err)
+        return 1;
+
+    return 0;
 }
