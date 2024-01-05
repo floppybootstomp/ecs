@@ -8,10 +8,13 @@
 
 DungeonMaker::DungeonMaker(int sX, int sY, int nNodes, int nRooms)
 {
-    name = "Dungeon" + std::to_string(rand());
+    srand(time(NULL));
+
+    name = "Dungeon" + std::to_string(rand() % 100);
     sizeX = sX;
     sizeY = sY;
     numNodes = nNodes;
+    numRooms = nRooms;
     map = (int**)malloc(sizeY * sizeof(int*));
     for(int i = 0; i < sizeY; i ++)
     {
@@ -23,11 +26,46 @@ DungeonMaker::DungeonMaker(int sX, int sY, int nNodes, int nRooms)
         }
     }
 
-    generateDungeon(nRooms);
+    generateDungeon();
 }
 
 DungeonMaker::~DungeonMaker()
 {
+    for(int i = 0; i < numRooms; i ++)
+        deleteRoom(dungeonRooms[i]);
+
+    for(int i = 0; i < sizeY; i ++)
+        delete map[i];
+
+    delete map;
+}
+
+// calculates if X is zero and returns whether it is or not
+bool DungeonMaker::calcIsXZero(bool favorX, int factor)
+{
+    int roll = rand() % factor;
+    bool isXZero = !favorX ^ (roll > 0);
+
+    return isXZero;
+}
+
+// deletes all nodes in a room, then deletes the room
+void DungeonMaker::deleteRoom(room* r)
+{
+    while(r->parent->neighbors.size() != 0)
+    {
+        node* p = r->parent;
+        node* temp = r->parent;
+        while(temp->neighbors.size() > 0 && p != temp->neighbors.back())
+        {
+            p = temp;
+            temp = temp->neighbors.back();
+        }
+        p->neighbors.pop_back();
+        delete temp;
+    }
+    delete r->parent;
+    delete r;
 }
 
 void DungeonMaker::drawDungeon(Draw* d)
@@ -54,15 +92,6 @@ void DungeonMaker::drawDungeon(Draw* d)
             }
         }
     }
-}
-
-// calculates if X is zero and returns whether it is or not
-bool DungeonMaker::calcIsXZero(bool favorX, int factor)
-{
-    int roll = rand() % factor;
-    bool isXZero = !favorX ^ (roll > 0);
-
-    return isXZero;
 }
 
 int DungeonMaker::findNumNeighbors(int x, int y)
@@ -106,13 +135,11 @@ bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, int w, int h, 
     return xIsVN;
 }
 
-void DungeonMaker::generateDungeon(int numRooms)
+void DungeonMaker::generateDungeon()
 {
     node tail;
     bool favorX;
     int roomWidth, roomHeight, roomX, roomY, hNeighbors, tNeighbors, favorDirMult;
-
-    srand(time(NULL));
 
     // initialize values for first room
     roomWidth = sizeX/numRooms;
@@ -206,11 +233,43 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
 
     return *prev;
 }
+int DungeonMaker::loadDungeon(std::string filename)
+{
+    /*for(int i = 0; i < numRooms; i ++){
+        deleteRoom(dungeonRooms[i]);
+        dungeonRooms.pop_back();
+    }*/
+
+    FileIO* fio = new FileIO();
+    map = fio->readMatrix(filename);
+    if(map == 0)
+        return 1;
+
+    return 0;
+}
+
+void DungeonMaker::resetDungeon()
+{
+    for(int i = 0; i < numRooms; i ++){
+        deleteRoom(dungeonRooms[i]);
+        dungeonRooms.pop_back();
+    }
+
+    for(int i = 0; i < sizeY; i ++)
+    {
+        for(int j = 0; j < sizeX; j ++)
+        {
+            map[i][j] = 0;
+        }
+    }
+
+    generateDungeon();
+}
 
 int DungeonMaker::saveDungeon()
 {
     FileIO* fio = new FileIO();
-    int err = fio->writeMatrix(map, sizeX, sizeY, name + ".dgn");
+    int err = fio->writeMatrix(map, sizeX, sizeY, "dungeons/" + name + ".dgn");
     if(err)
         return 1;
 

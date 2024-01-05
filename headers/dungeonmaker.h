@@ -7,7 +7,7 @@
 
 class DungeonMaker
 {
-    int sizeX, sizeY, numNodes;
+    int sizeX, sizeY, numNodes, numRooms;
     int** map;
     std::string name;
 
@@ -28,6 +28,9 @@ class DungeonMaker
     // add new node vertically or horizontally
     bool calcIsXZero(bool favorX, int factor);
 
+    // deletes all nodes in a room, then deletes the room
+    void deleteRoom(room* r);
+
     // find number of neighbors for node
     int findNumNeighbors(int x, int y);
 
@@ -45,7 +48,13 @@ public:
     void drawDungeon(Draw* d);
 
     // generate a dungeon
-    void generateDungeon(int numRooms);
+    void generateDungeon();
+
+    // loads dungeon matrix to file returns 1 if error
+    int loadDungeon(std::string filename);
+
+    // generates a new dungeon
+    void resetDungeon();
 
     // saves dungeon matrix to file returns 1 if error
     int saveDungeon();

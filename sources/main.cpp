@@ -32,8 +32,25 @@ int main()
         int selected;
     };
     menuItem theMenuItems[4] = {{BACKGROUND_PALLET}, {BACKGROUND_PALLET}, {BACKGROUND_PALLET}, {BACKGROUND_PALLET}};
-    while(ch != 'q')
+
+    std::string consoleText = "";
+    std::string errorText = "";
+    std::string typingText = "";
+
+    int mode = 0;
+    while(mode != 2)
     {
+        // load a dungeon
+        if(typingText.size() > 0 && mode == 0){
+            //int err = dungeon.loadDungeon("dungeons/" + typingText);
+            int err = 1;
+            if(err == 1)
+                errorText = "Could not load dungeon";
+            else
+                consoleText = "Loaded Dungeon";
+                
+        }
+
         dungeon.drawDungeon(d);
 
         // menu for managing maps
@@ -42,6 +59,10 @@ int main()
             theMenuItems[i].selected = BACKGROUND_PALLET;
         }
         theMenuItems[menuSelector].selected = LIGHT_PALLET;
+        d->drawString(stdscr, sz/2, 0, "                                                                       ", BACKGROUND_PALLET);
+        d->drawString(stdscr, sz/2, 0, consoleText, HIGHLIGHT_PALLET);
+        d->drawString(stdscr, sz/2, 0, errorText, COLOR_PALLET);
+        d->drawString(stdscr, sz/2, 0, typingText, BACKGROUND_PALLET);
         d->drawString(stdscr, sz/2+1, 0, "New Map", theMenuItems[0].selected);
         d->drawString(stdscr, sz/2+3, 0, "Save Map", theMenuItems[1].selected);
         d->drawString(stdscr, sz/2+5, 0, "Load Map", theMenuItems[2].selected);
@@ -49,48 +70,74 @@ int main()
 
         ch = wgetch(stdscr);
 
-        int e;
-        switch(ch)
+        switch(mode)
         {
-            // move up menu
-            case 'w':
-            case 'a':
-            case 'k':
-                if(menuSelector > 0)
-                    menuSelector --;
-                else
-                    menuSelector = 3;
-                break;
-            // move down menu
-            case 's':
-            case 'd':
-            case 'j':
-                menuSelector = (menuSelector + 1) % 4;
-                break;
-            case 10:
-                switch(menuSelector)
+            case 0:
+                consoleText = "";
+                errorText = "";
+                typingText = "";
+                int e;
+                switch(ch)
                 {
-                    case 0:
-                        // generate a new dungeon
-                        break;
-                    case 1:
-                        // save current dungeon
-                        e = dungeon.saveDungeon();
-                        if(e)
-                            d->drawString(stdscr, sz/2, 0, "Could not save dungeon", COLOR_PALLET);
+                    // move up menu
+                    case 'w':
+                    case 'a':
+                    case 'k':
+                    case 37:
+                    case 39:
+                        if(menuSelector > 0)
+                            menuSelector --;
                         else
-                            d->drawString(stdscr, sz/2, 0, "Saved Dungeon", HIGHLIGHT_PALLET);
+                            menuSelector = 3;
+                        break;
+                    // move down menu
+                    case 's':
+                    case 'd':
+                    case 'j':
+                    case 38:
+                    case 40:
+                        menuSelector = (menuSelector + 1) % 4;
+                        break;
+                    case 10:
+                        switch(menuSelector)
+                        {
+                            case 0:
+                                // generate a new dungeon
+                                dungeon.resetDungeon();
+                                break;
+                            case 1:
+                                // save current dungeon
+                                e = dungeon.saveDungeon();
+                                if(e)
+                                    errorText = "Could not save dungeon";
+                                else
+                                    consoleText = "Saved Dungeon";
 
+                                break;
+                            case 2:
+                                // load dungeon
+                                mode = 1;
+                                break;
+                            case 3:
+                                // close
+                                mode = 2;
+                                break;
+                        }
                         break;
-                    case 2:
-                        break;
-                    case 3:
-                        // close
-                        ch = 'q';
+                    case 'q':
+                        mode = 2;
                         break;
                 }
+                break;
+            case 1:
+                if(ch == 10)
+                    mode = 0;
+                else if(ch == 8)
+                    typingText.pop_back();
+
+                typingText += ch;
+                break;
         }
-        //d->drawString(stdscr, y, x, "@", BACKGROUND_PALLET);
         refresh();
     }
 
