@@ -7,6 +7,5 @@
 *.txt
 *.dgn
 moc/*
-dungeons/*
 Makefile
 rl
