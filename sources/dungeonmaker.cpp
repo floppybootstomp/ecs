@@ -10,7 +10,7 @@ DungeonMaker::DungeonMaker(int sX, int sY, int nNodes, int nRooms)
 {
     srand(time(NULL));
 
-    name = "Dungeon" + std::to_string(rand() % 100);
+    name = "Dungeon" + std::to_string(rand());
     sizeX = sX;
     sizeY = sY;
     numNodes = nNodes;
@@ -80,12 +80,6 @@ void DungeonMaker::drawDungeon(Draw* d)
             {
                 case 1:
                     d->drawString(stdscr, i, j, " ", LIGHT_PALLET);
-                    break;
-                case 2:
-                    d->drawString(stdscr, i, j, " ", DARK_PALLET);
-                    break;
-                case 3:
-                    d->drawString(stdscr, i, j, " ", HIGHLIGHT_PALLET);
                     break;
                 default:
                     d->drawString(stdscr, i, j, " ", BACKGROUND_PALLET);
@@ -183,7 +177,7 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
     rm->parent->y = pY;
 
     node* prev = rm->parent;
-    map[prev->y][prev->x] = 2;
+    map[prev->y][prev->x] = 1;
     int nodesToMake = numNodes/5;
 
     // to terminate the loop if there is a loop in the neighbor map
@@ -208,15 +202,7 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
 
             newNode->neighbors.push_back(prev);
             prev->neighbors.push_back(newNode);
-            switch(nodesToMake)
-            {
-                case 1:
-                    map[newNode->y][newNode->x] = 3;
-                    break;
-                default:
-                    map[newNode->y][newNode->x] = 1;
-                    break;
-            }
+            map[newNode->y][newNode->x] = 1;
 
             // next iteration...
             nodesToMake --;
@@ -265,6 +251,7 @@ void DungeonMaker::resetDungeon()
         }
     }
 
+    name = "Dungeon" + std::to_string(rand());
     generateDungeon();
 }
 

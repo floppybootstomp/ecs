@@ -39,10 +39,7 @@ int** FileIO::readMatrix(std::string filename)
 
     f.open(filename.c_str());
     if(!f)
-    {
-        std::cout << filename << std::endl;
         return 0;
-    }
 
     int a = 0;
     std::string line;

@@ -33,9 +33,9 @@ void Draw::drawMenu(std::vector<std::string> menuItems, int y, int menuSize, int
     for(int i = 0; i < menuSize; i++)
     {
         if(i == index)
-            drawString(stdscr, y+((i%6)*2)+1, 20*(i/6), menuItems[i], LIGHT_PALLET);
+            drawString(stdscr, y+((i%6)*2)+1, 22*(i/6), menuItems[i], LIGHT_PALLET);
         else
-            drawString(stdscr, y+((i%6)*2)+1, 20*(i/6), menuItems[i], BACKGROUND_PALLET);
+            drawString(stdscr, y+((i%6)*2)+1, 22*(i/6), menuItems[i], BACKGROUND_PALLET);
     }
 }
 

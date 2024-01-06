@@ -20,6 +20,7 @@ int main()
     curs_set(0);
     noecho();
     cbreak();
+    keypad(stdscr, TRUE);
 
     Draw* d = new Draw();
     int sz = 64;
@@ -90,8 +91,9 @@ int main()
             case 'w':
             case 'a':
             case 'k':
-            case 37:
-            case 39:
+            case 'h':
+            case KEY_UP:
+            case KEY_LEFT:
                 if(menuSelector > 0)
                     menuSelector --;
                 else
@@ -101,8 +103,9 @@ int main()
             case 's':
             case 'd':
             case 'j':
-            case 38:
-            case 40:
+            case 'l':
+            case KEY_DOWN:
+            case KEY_RIGHT:
                 menuSelector = (menuSelector + 1) % menuSize;
                 break;
             case 10:
