@@ -13,6 +13,19 @@
 
 using namespace std;
 
+// resets the menu to MENU_MODE
+void resetMenuMode(int* menuSelector, int* ch, std::vector<std::string>* menuItems, int* mode)
+{
+    // reset menu
+    *menuSelector = 0;
+    *ch = -1;
+    *menuItems = {"New map", "Save Map", "Load Map", "Quit"};
+    *mode = MENU_MODE;
+
+    // reset screen
+    clear();
+}
+
 int main()
 {
     initscr();
@@ -108,6 +121,11 @@ int main()
             case KEY_RIGHT:
                 menuSelector = (menuSelector + 1) % menuSize;
                 break;
+            case 'b':
+                if(mode == LOAD_MODE)
+                    resetMenuMode(&menuSelector, &ch, &menuItems, &mode);
+
+                break;
             case 10:
                 int e;
                 if(mode == MENU_MODE)
@@ -163,14 +181,12 @@ int main()
                 }
                 if(mode == LOAD_MODE && ch == 10)
                 {
+                    // load dungeon
                     loadFile = menuItems[menuSelector];
-                    menuSelector = 0;
-                    ch = ' ';
-                    menuItems = {"New map", "Save Map", "Load Map", "Quit"};
-                    mode = MENU_MODE;
 
-                    // reset screen
-                    clear();
+                    resetMenuMode(&menuSelector, &ch, &menuItems, &mode);
+
+                    break;
                 }
 
                 break;
