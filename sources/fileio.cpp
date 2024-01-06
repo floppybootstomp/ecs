@@ -37,9 +37,12 @@ int** FileIO::readMatrix(std::string filename)
     int** matrix;
     std::ifstream f;
 
-    f.open(filename);
+    f.open(filename.c_str());
     if(!f)
+    {
+        std::cout << filename << std::endl;
         return 0;
+    }
 
     int a = 0;
     std::string line;
@@ -50,7 +53,8 @@ int** FileIO::readMatrix(std::string filename)
         int b = 0;
         if(a == 0)
         {
-            while(iss >> n){
+            while(iss >> n)
+            {
                 matrixSize[b] = n;
                 b ++;
             }
@@ -68,7 +72,8 @@ int** FileIO::readMatrix(std::string filename)
         }
         else
         {
-            while(iss >> n){
+            while(iss >> n)
+            {
                 matrix[a-1][b] = n;
                 b ++;
             }

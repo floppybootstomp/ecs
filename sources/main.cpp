@@ -5,6 +5,11 @@
 #include "../headers/draw.h"
 #include "../headers/dungeonmaker.h"
 #include <curses.h>
+#include <dirent.h>
+
+#define MENU_MODE 0
+#define LOAD_MODE 1
+#define QUIT_MODE 2
 
 using namespace std;
 
@@ -25,119 +30,152 @@ int main()
     move(20, 20);
     refresh();
 
-    int ch = -1;
-    //int x, y = 3;
-    int menuSelector = 0;
-    struct menuItem{
-        int selected;
-    };
-    menuItem theMenuItems[4] = {{BACKGROUND_PALLET}, {BACKGROUND_PALLET}, {BACKGROUND_PALLET}, {BACKGROUND_PALLET}};
-
     std::string consoleText = "";
     std::string errorText = "";
-    std::string typingText = "";
+    std::string loadFile = "";
+    std::vector<std::string> menuItems = {"New map", "Save Map", "Load Map", "Quit"};;
 
-    int mode = 0;
-    while(mode != 2)
+    int ch = -1;
+    int mode = MENU_MODE;
+    int menuSize = 0;
+    int menuSelector = 0;
+    while(mode != QUIT_MODE)
     {
         // load a dungeon
-        if(typingText.size() > 0 && mode == 0){
+        if(loadFile.size() > 0 && mode == MENU_MODE){
             //int err = dungeon.loadDungeon("dungeons/" + typingText);
-            int err = 1;
+            std::string filename = "./dungeons/" + loadFile;
+            //std::cout << typingText << std::endl;
+            int err = dungeon.loadDungeon(filename);
             if(err == 1)
-                errorText = "Could not load dungeon";
+            {
+                loadFile = "";
+                errorText = "Could not load dungeon: " + filename;
+            }
             else
-                consoleText = "Loaded Dungeon";
+            {
+                loadFile = "";
+                consoleText = "Loaded Dungeon: " + filename;
+            }
                 
         }
 
-        dungeon.drawDungeon(d);
-
-        // menu for managing maps
-        for(int i = 0; i < 4; i ++)
-        {
-            theMenuItems[i].selected = BACKGROUND_PALLET;
-        }
-        theMenuItems[menuSelector].selected = LIGHT_PALLET;
+        // console and error prompts
         d->drawString(stdscr, sz/2, 0, "                                                                       ", BACKGROUND_PALLET);
         d->drawString(stdscr, sz/2, 0, consoleText, HIGHLIGHT_PALLET);
         d->drawString(stdscr, sz/2, 0, errorText, COLOR_PALLET);
-        d->drawString(stdscr, sz/2, 0, typingText, BACKGROUND_PALLET);
-        d->drawString(stdscr, sz/2+1, 0, "New Map", theMenuItems[0].selected);
-        d->drawString(stdscr, sz/2+3, 0, "Save Map", theMenuItems[1].selected);
-        d->drawString(stdscr, sz/2+5, 0, "Load Map", theMenuItems[2].selected);
-        d->drawString(stdscr, sz/2+7, 0, "Quit", theMenuItems[3].selected);
 
+        // menu for managing maps
+        menuSize = (int)menuItems.size();
+
+        d->drawMenu(menuItems, sz/2, menuSize, menuSelector);
+        dungeon.drawDungeon(d);
+
+        // get user input
         ch = wgetch(stdscr);
 
-        switch(mode)
+        // reset console text
+        consoleText = "";
+        errorText = "";
+
+        // load variables
+        DIR* dungeonDirectory;
+        std::string fileNames;
+        int i;
+        dirent* fileEntry;
+
+        switch(ch)
         {
-            case 0:
-                consoleText = "";
-                errorText = "";
-                typingText = "";
-                int e;
-                switch(ch)
-                {
-                    // move up menu
-                    case 'w':
-                    case 'a':
-                    case 'k':
-                    case 37:
-                    case 39:
-                        if(menuSelector > 0)
-                            menuSelector --;
-                        else
-                            menuSelector = 3;
-                        break;
-                    // move down menu
-                    case 's':
-                    case 'd':
-                    case 'j':
-                    case 38:
-                    case 40:
-                        menuSelector = (menuSelector + 1) % 4;
-                        break;
-                    case 10:
-                        switch(menuSelector)
-                        {
-                            case 0:
-                                // generate a new dungeon
-                                dungeon.resetDungeon();
-                                break;
-                            case 1:
-                                // save current dungeon
-                                e = dungeon.saveDungeon();
-                                if(e)
-                                    errorText = "Could not save dungeon";
-                                else
-                                    consoleText = "Saved Dungeon";
-
-                                break;
-                            case 2:
-                                // load dungeon
-                                mode = 1;
-                                break;
-                            case 3:
-                                // close
-                                mode = 2;
-                                break;
-                        }
-                        break;
-                    case 'q':
-                        mode = 2;
-                        break;
-                }
+            // move up menu
+            case 'w':
+            case 'a':
+            case 'k':
+            case 37:
+            case 39:
+                if(menuSelector > 0)
+                    menuSelector --;
+                else
+                    menuSelector = menuSize-1;
                 break;
-            case 1:
-                if(ch == 10)
-                    mode = 0;
-                else if(ch == 8)
-                    typingText.pop_back();
+            // move down menu
+            case 's':
+            case 'd':
+            case 'j':
+            case 38:
+            case 40:
+                menuSelector = (menuSelector + 1) % menuSize;
+                break;
+            case 10:
+                int e;
+                if(mode == MENU_MODE)
+                {
+                    switch(menuSelector)
+                    {
+                        case 0:
+                            // generate a new dungeon
+                            dungeon.resetDungeon();
+                            break;
+                        case 1:
+                            // save current dungeon
+                            e = dungeon.saveDungeon();
+                            if(e)
+                                errorText = "Could not save dungeon";
+                            else
+                                consoleText = "Saved Dungeon";
 
-                typingText += ch;
+                            break;
+                        case 2:
+                            mode = LOAD_MODE;
+                            dungeonDirectory = opendir("./dungeons");
+                            fileNames = "";
+                            i = 0;
+                            fileEntry = readdir(dungeonDirectory);
+
+                            // reset menuItems
+                            menuItems.clear();
+                            menuSelector = 0;
+
+                            // loop through file names and add to menuItems
+                            while(fileEntry != nullptr)
+                            {
+                                fileNames = fileEntry->d_name;
+                                if(fileNames != "." && fileNames != ".."){
+                                    menuItems.push_back(fileNames);
+                                    i ++;
+                                }
+                                fileEntry = readdir(dungeonDirectory);
+                            }
+                            (void)closedir(dungeonDirectory);
+                            ch = ' ';
+
+                            // reset screen
+                            clear();
+
+                            break;
+                        case 3:
+                            // close
+                            mode = 2;
+                            break;
+                    }
+                }
+                if(mode == LOAD_MODE && ch == 10)
+                {
+                    loadFile = menuItems[menuSelector];
+                    menuSelector = 0;
+                    ch = ' ';
+                    menuItems = {"New map", "Save Map", "Load Map", "Quit"};
+                    mode = MENU_MODE;
+
+                    // reset screen
+                    clear();
+                }
+
+                break;
+            case 'q':
+                mode = 2;
                 break;
         }
+
         refresh();
     }
 

@@ -76,7 +76,8 @@ void DungeonMaker::drawDungeon(Draw* d)
     {
         for(int j = 0; j < sizeX; j ++)
         {
-            switch(map[i][j]){
+            switch(map[i][j])
+            {
                 case 1:
                     d->drawString(stdscr, i, j, " ", LIGHT_PALLET);
                     break;
@@ -113,7 +114,8 @@ bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, int w, int h, 
     std::vector<int> validY;
     bool xIsVN;
 
-    for(int j = -1; j <= 1; j ++){
+    for(int j = -1; j <= 1; j ++)
+    {
         if(y + j >= 0 && y + j < h && y + j < sizeY){
             if(map[y + j][x] == 0){
                 validY.push_back(y + j);
@@ -206,7 +208,8 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
 
             newNode->neighbors.push_back(prev);
             prev->neighbors.push_back(newNode);
-            switch(nodesToMake){
+            switch(nodesToMake)
+            {
                 case 1:
                     map[newNode->y][newNode->x] = 3;
                     break;
@@ -235,22 +238,21 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
 }
 int DungeonMaker::loadDungeon(std::string filename)
 {
-    /*for(int i = 0; i < numRooms; i ++){
-        deleteRoom(dungeonRooms[i]);
-        dungeonRooms.pop_back();
-    }*/
-
     FileIO* fio = new FileIO();
-    map = fio->readMatrix(filename);
-    if(map == 0)
+    int ** temp = fio->readMatrix(filename);
+    //std::cout << filename << std::endl;
+    if(temp == 0)
         return 1;
+    else
+        map = temp;
 
     return 0;
 }
 
 void DungeonMaker::resetDungeon()
 {
-    for(int i = 0; i < numRooms; i ++){
+    for(int i = 0; i < numRooms; i ++)
+    {
         deleteRoom(dungeonRooms[i]);
         dungeonRooms.pop_back();
     }

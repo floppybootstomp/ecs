@@ -28,6 +28,17 @@ void Draw::initColors()
     init_pair(COLOR_PALLET, COLOR_RED, COLOR_BLACK);
 }
 
+void Draw::drawMenu(std::vector<std::string> menuItems, int y, int menuSize, int index)
+{
+    for(int i = 0; i < menuSize; i++)
+    {
+        if(i == index)
+            drawString(stdscr, y+((i%6)*2)+1, 20*(i/6), menuItems[i], LIGHT_PALLET);
+        else
+            drawString(stdscr, y+((i%6)*2)+1, 20*(i/6), menuItems[i], BACKGROUND_PALLET);
+    }
+}
+
 void Draw::drawString(WINDOW *win, int startX, int startY, std::string c, int colorPallet)
 {
     if(win == nullptr)
