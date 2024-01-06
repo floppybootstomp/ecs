@@ -11,8 +11,6 @@
 #define LOAD_MODE 1
 #define QUIT_MODE 2
 
-using namespace std;
-
 // resets the menu to MENU_MODE
 void resetMenuMode(int* menuSelector, int* ch, std::vector<std::string>* menuItems, int* mode)
 {
@@ -47,20 +45,22 @@ int main()
     std::string consoleText = "";
     std::string errorText = "";
     std::string loadFile = "";
-    std::vector<std::string> menuItems = {"New map", "Save Map", "Load Map", "Quit"};;
+    std::vector<std::string> menuItems;
 
-    int ch = -1;
-    int mode = MENU_MODE;
-    int menuSize = 0;
-    int menuSelector = 0;
+    int ch;
+    int mode;
+    int menuSize;
+    int menuSelector;
+
+    resetMenuMode(&menuSelector, &ch, &menuItems, &mode);
+
     while(mode != QUIT_MODE)
     {
         // load a dungeon
         if(loadFile.size() > 0 && mode == MENU_MODE){
-            //int err = dungeon.loadDungeon("dungeons/" + typingText);
             std::string filename = "./dungeons/" + loadFile;
-            //std::cout << typingText << std::endl;
             int err = dungeon.loadDungeon(filename);
+
             if(err == 1)
             {
                 loadFile = "";
@@ -75,7 +75,6 @@ int main()
         }
 
         // console and error prompts
-        d->drawString(stdscr, sz/2, 0, "                                                                       ", BACKGROUND_PALLET);
         d->drawString(stdscr, sz/2, 0, consoleText, HIGHLIGHT_PALLET);
         d->drawString(stdscr, sz/2, 0, errorText, COLOR_PALLET);
 
@@ -89,8 +88,12 @@ int main()
         ch = wgetch(stdscr);
 
         // reset console text
-        consoleText = "";
-        errorText = "";
+        if(consoleText.size() > 0 || errorText.size() > 0)
+        {
+            consoleText = "";
+            errorText = "";
+            clear();
+        }
 
         // load variables
         DIR* dungeonDirectory;
@@ -124,7 +127,6 @@ int main()
             case 'b':
                 if(mode == LOAD_MODE)
                     resetMenuMode(&menuSelector, &ch, &menuItems, &mode);
-
                 break;
             case 10:
                 int e;
@@ -139,6 +141,7 @@ int main()
                         case 1:
                             // save current dungeon
                             e = dungeon.saveDungeon();
+
                             if(e)
                                 errorText = "Could not save dungeon";
                             else
@@ -167,7 +170,7 @@ int main()
                                 fileEntry = readdir(dungeonDirectory);
                             }
                             (void)closedir(dungeonDirectory);
-                            ch = ' ';
+                            ch = -1;
 
                             // reset screen
                             clear();
