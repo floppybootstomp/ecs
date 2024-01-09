@@ -7,4 +7,9 @@
 #define HIGHLIGHT_PALLET 4
 #define COLOR_PALLET 5
 
+#define UP 6
+#define LEFT 7
+#define RIGHT 8
+#define DOWN 9
+
 #endif // GLOBALVARS_H

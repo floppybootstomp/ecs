@@ -1,6 +1,8 @@
 #include <vector>
 #include <string>
+#include <map>
 #include "draw.h"
+#include "gameObject.h"
 
 #ifndef DUNGEONMAKER_H
 #define DUNGEONMAKER_H
@@ -8,7 +10,7 @@
 class DungeonMaker
 {
     int sizeX, sizeY, numNodes, numRooms;
-    int** map;
+    int** gameMap;
     std::string name;
 
     struct node {
@@ -24,6 +26,11 @@ class DungeonMaker
     };
 
     std::vector<room*> dungeonRooms;
+
+    std::map<int, GameObject*> dungeonObjects;
+
+    // add a new dungeon object
+    void addDungeonObject(GameObject* g);
 
     // add new node vertically or horizontally
     bool calcIsXZero(bool favorX, int factor);

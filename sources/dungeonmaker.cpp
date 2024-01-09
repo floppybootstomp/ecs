@@ -15,14 +15,14 @@ DungeonMaker::DungeonMaker(int sX, int sY, int nNodes, int nRooms)
     sizeY = sY;
     numNodes = nNodes;
     numRooms = nRooms;
-    map = (int**)malloc(sizeY * sizeof(int*));
+    gameMap = (int**)malloc(sizeY * sizeof(int*));
     for(int i = 0; i < sizeY; i ++)
     {
-        map[i] = (int*)malloc(sizeX * sizeof(int));
+        gameMap[i] = (int*)malloc(sizeX * sizeof(int));
 
         for(int j = 0; j < sizeX; j ++)
         {
-            map[i][j] = 0;
+            gameMap[i][j] = 0;
         }
     }
 
@@ -35,9 +35,18 @@ DungeonMaker::~DungeonMaker()
         deleteRoom(dungeonRooms[i]);
 
     for(int i = 0; i < sizeY; i ++)
-        delete map[i];
+        delete gameMap[i];
 
-    delete map;
+    delete gameMap;
+}
+
+// add a new dungeon object
+void DungeonMaker::addDungeonObject(GameObject* g)
+{
+    int gId = (int)dungeonObjects.size() + 2;
+
+    dungeonObjects[gId] = g;
+    gameMap[g->getY()][g->getX()] = gId;
 }
 
 // calculates if X is zero and returns whether it is or not
@@ -76,13 +85,16 @@ void DungeonMaker::drawDungeon(Draw* d)
     {
         for(int j = 0; j < sizeX; j ++)
         {
-            switch(map[i][j])
+            switch(gameMap[i][j])
             {
+                case 0:
+                    d->drawString(stdscr, i, j, " ", BACKGROUND_PALLET);
+                    break;
                 case 1:
                     d->drawString(stdscr, i, j, " ", LIGHT_PALLET);
                     break;
                 default:
-                    d->drawString(stdscr, i, j, " ", BACKGROUND_PALLET);
+                    dungeonObjects[gameMap[i][j]]->draw(d);
                     break;
             }
         }
@@ -94,7 +106,7 @@ int DungeonMaker::findNumNeighbors(int x, int y)
     int count = 0;
     for(int i = -1; i <= 1; i ++)
         for(int j = -1; j <= 1; j ++)
-            if(!(y + i < 0 || y + i >= sizeY) && !(x + j < 0 || x + j >= sizeX) && !(i == j) && !(i == -1*j) && (map[y + i][x + j] == 0))
+            if(!(y + i < 0 || y + i >= sizeY) && !(x + j < 0 || x + j >= sizeX) && !(i == j) && !(i == -1*j) && (gameMap[y + i][x + j] == 0))
                 count ++;
 
     return count;
@@ -111,12 +123,12 @@ bool DungeonMaker::findValidNeighbors(bool xIsZero, int x, int y, int w, int h, 
     for(int j = -1; j <= 1; j ++)
     {
         if(y + j >= 0 && y + j < h && y + j < sizeY){
-            if(map[y + j][x] == 0){
+            if(gameMap[y + j][x] == 0){
                 validY.push_back(y + j);
             }
         }
         if(x + j >= 0 && x + j < w && x + j < sizeX){
-            if(map[y][x + j] == 0){
+            if(gameMap[y][x + j] == 0){
                 validX.push_back(x + j);
             }
         }
@@ -177,7 +189,7 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
     rm->parent->y = pY;
 
     node* prev = rm->parent;
-    map[prev->y][prev->x] = 1;
+    gameMap[prev->y][prev->x] = 1;
     int nodesToMake = numNodes/5;
 
     // to terminate the loop if there is a loop in the neighbor map
@@ -202,7 +214,7 @@ DungeonMaker::node DungeonMaker::generateRoom(room* rm, int pX, int pY, int room
 
             newNode->neighbors.push_back(prev);
             prev->neighbors.push_back(newNode);
-            map[newNode->y][newNode->x] = 1;
+            gameMap[newNode->y][newNode->x] = 1;
 
             // next iteration...
             nodesToMake --;
@@ -230,7 +242,7 @@ int DungeonMaker::loadDungeon(std::string filename)
     if(temp == 0)
         return 1;
     else
-        map = temp;
+        gameMap = temp;
 
     return 0;
 }
@@ -247,7 +259,7 @@ void DungeonMaker::resetDungeon()
     {
         for(int j = 0; j < sizeX; j ++)
         {
-            map[i][j] = 0;
+            gameMap[i][j] = 0;
         }
     }
 
@@ -258,7 +270,7 @@ void DungeonMaker::resetDungeon()
 int DungeonMaker::saveDungeon()
 {
     FileIO* fio = new FileIO();
-    int err = fio->writeMatrix(map, sizeX, sizeY, "dungeons/" + name + ".dgn");
+    int err = fio->writeMatrix(gameMap, sizeX, sizeY, "dungeons/" + name + ".dgn");
     if(err)
         return 1;
 
