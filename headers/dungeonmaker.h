@@ -2,7 +2,6 @@
 #include <string>
 #include <map>
 #include "draw.h"
-#include "gameObject.h"
 
 #ifndef DUNGEONMAKER_H
 #define DUNGEONMAKER_H
@@ -26,11 +25,6 @@ class DungeonMaker
     };
 
     std::vector<room*> dungeonRooms;
-
-    std::map<int, GameObject*> dungeonObjects;
-
-    // add a new dungeon object
-    void addDungeonObject(GameObject* g);
 
     // add new node vertically or horizontally
     bool calcIsXZero(bool favorX, int factor);

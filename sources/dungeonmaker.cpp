@@ -40,15 +40,6 @@ DungeonMaker::~DungeonMaker()
     delete gameMap;
 }
 
-// add a new dungeon object
-void DungeonMaker::addDungeonObject(GameObject* g)
-{
-    int gId = (int)dungeonObjects.size() + 2;
-
-    dungeonObjects[gId] = g;
-    gameMap[g->getY()][g->getX()] = gId;
-}
-
 // calculates if X is zero and returns whether it is or not
 bool DungeonMaker::calcIsXZero(bool favorX, int factor)
 {
@@ -94,7 +85,7 @@ void DungeonMaker::drawDungeon(Draw* d)
                     d->drawString(stdscr, i, j, " ", LIGHT_PALLET);
                     break;
                 default:
-                    dungeonObjects[gameMap[i][j]]->draw(d);
+                    d->drawString(stdscr, i, j, " ", HIGHLIGHT_PALLET);
                     break;
             }
         }

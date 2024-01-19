@@ -12,4 +12,6 @@
 #define RIGHT 8
 #define DOWN 9
 
+#define MAX_ENTITIES 5000
+
 #endif // GLOBALVARS_H
