@@ -38,7 +38,7 @@ public:
         {
             ((ComponentArray<T>*)componentMap[cptKey])->entityDestroyed(eid);
 
-            if(componentMap[cptKey]->size() == 0)
+            if(((ComponentArray<T>*)componentMap[cptKey])->size() == 0)
             {
                 removeComponentArray<T>();
                 std::cout << "removed " << cptKey << " componentArray" << std::endl;

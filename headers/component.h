@@ -72,9 +72,12 @@ public:
     {
         if(eid < MAX_ENTITIES && eid >= 0)
         {
-            cptArray[eid] = nullptr;
-            if(cptArraySize > 0)
-                cptArraySize --;
+            if(cptArray[eid] != nullptr)
+            {
+                cptArray[eid] = nullptr;
+                if(cptArraySize > 0)
+                    cptArraySize --;
+            }
         }
     }
 

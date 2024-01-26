@@ -49,10 +49,10 @@ int main()
         }
     }
 
-    cpm.removeComponent<posComponent>(2);
     for(int i = 1; i <= 4; i ++)
     {
         cpm.removeComponent<moveComponent>(i);
+        cpm.removeComponent<posComponent>(i);
     }
 
     /*
