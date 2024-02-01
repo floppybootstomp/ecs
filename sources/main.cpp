@@ -7,7 +7,8 @@
 #include "../headers/menu.h"
 #include "../headers/entityManager.h"
 #include "../headers/component.h"
-#include "../headers/componentManager.h"
+#include "../headers/system.h"
+#include "../headers/entityAttributeManager.h"
 #include <curses.h>
 #include <dirent.h>
 
@@ -17,81 +18,59 @@
 int main()
 {
     EntityManager e;
-    ComponentManager cpm;
-
-    ComponentArray<posComponent> posCA;
-    ComponentArray<moveComponent> moveCA;
-    ComponentArray<drawComponent> drawCA;
+    EntityAttributeManager componentManager;
+    EntityAttributeManager systemManager;
 
     e.addEntity();
     e.addEntity();
     e.addEntity();
     e.addEntity();
     e.addEntity();
-
-    /*
-    cpm.addComponentArray<posComponent>();
-    cpm.addComponentArray<moveComponent>();
-    cpm.addComponentArray<drawComponent>();
-    */
 
     for(int i = 0; i <= 4; i ++)
     {
         if(i != 0)
         {
-            cpm.setComponent<moveComponent>(i, new moveComponent(0, 5));
-            cpm.setComponent<drawComponent>(i, new drawComponent('@', BACKGROUND_PALLET));
+            componentManager.set<moveComponent>(i, new moveComponent(0, 5));
+            systemManager.set<moveSystem>(i, new moveSystem());
+            componentManager.set<drawComponent>(i, new drawComponent('@', BACKGROUND_PALLET));
         }
+        componentManager.set<posComponent>(i, new posComponent(0, i));
 
         if(i != 1)
         {
-            cpm.setComponent<posComponent>(i, new posComponent(0, i));
+            //componentManager.set<posComponent>(i, new posComponent(0, i));
         }
     }
 
-    for(int i = 1; i <= 4; i ++)
-    {
-        cpm.removeComponent<moveComponent>(i);
-        cpm.removeComponent<posComponent>(i);
-    }
-
-    /*
-    posCA.addComponent(0, new posComponent());
-    posCA.addComponent(2, new posComponent());
-    posCA.addComponent(3, new posComponent());
-    posCA.addComponent(4, new posComponent());
-    moveCA.addComponent(1, new moveComponent());
-    moveCA.addComponent(2, new moveComponent());
-    moveCA.addComponent(3, new moveComponent());
-    moveCA.addComponent(4, new moveComponent());
-    drawCA.addComponent(1, new drawComponent());
-    drawCA.addComponent(2, new drawComponent());
-    drawCA.addComponent(3, new drawComponent());
-    drawCA.addComponent(4, new drawComponent());
-    */
-
     int entity;
 
-    std::cout << "Living entities: ";
+    std::cout << "Living entities: " << std::endl;
     for(int i = 0; i < MAX_ENTITIES; i ++)
     {
         entity = e.getEntity(i);
         if(entity != -1){
-            std::cout << e.getEntity(i) << ", ";
+            std::cout << entity << ": (" << componentManager.get<posComponent>(entity)->x << ", " << componentManager.get<posComponent>(entity)->y << ")" << std::endl;
         }
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
 
     e.removeEntity(2);
+    componentManager.entityDestroyed(2);
     e.removeEntity(3);
+    componentManager.entityDestroyed(3);
     e.addEntity();
+    systemManager.get<moveSystem>(1)->execute(&componentManager, 1);
 
-    std::cout << "Living entities: ";
+    std::cout << "Living entities: " << std::endl;
     for(int i = 0; i < MAX_ENTITIES; i ++)
     {
         entity = e.getEntity(i);
-        if(entity != -1)
-            std::cout << e.getEntity(i) << ", ";
+        if(entity != -1){
+            std::cout << entity << ": (" << componentManager.get<posComponent>(entity)->x << ", " << componentManager.get<posComponent>(entity)->y << ")" << std::endl;
+            e.removeEntity(i);
+            componentManager.entityDestroyed(i);
+        }
     }
     std::cout << std::endl;
     /*
